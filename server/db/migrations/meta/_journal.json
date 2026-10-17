@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788715626651,
+      "tag": "0000_inicial",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788717476576,
+      "tag": "0001_rol_permisos_permiso_abierto",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788911379563,
+      "tag": "0002_nostalgic_sage",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788913495956,
+      "tag": "0003_eminent_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788920862549,
+      "tag": "0004_usuarios_personaId_unique",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788923606327,
+      "tag": "0005_huge_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789090852161,
+      "tag": "0006_greedy_anthem",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1789093114475,
+      "tag": "0007_codigos_institucionales",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1789500000000,
+      "tag": "0008_alcance_salones",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1789600000000,
+      "tag": "0009_usuarios_debe_cambiar_password",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1789700000000,
+      "tag": "0010_usuarios_password_temporal_cifrada",
+      "breakpoints": true
+    }
+  ]
+}

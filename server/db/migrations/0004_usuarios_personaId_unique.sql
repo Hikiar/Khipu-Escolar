@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `usuarios_personaId_unique` ON `usuarios` (`personaId`);

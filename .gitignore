@@ -1,0 +1,51 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Base de datos local (generada en el arranque)
+server/data/
+
+# Variables de entorno (secretos por entorno, nunca al repo)
+.env
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Herramientas de agentes / skills de terceros duplicadas y manifiesto (raíz, no son del producto)
+/agent/
+/.agents/
+/.claude/
+/skills-lock.json
+
+# Snapshots y logs de Playwright MCP (pueden contener datos de la app)
+/.playwright-mcp/
+
+# Respaldos temporales de archivos
+*.backup-before-split
+
+# OpenCode: artefactos locales antes cubiertos por .opencode/.gitignore (ese archivo no se versiona).
+# No se ignoran opencode.json, agents/ ni skills/.
+/.opencode/node_modules/
+/.opencode/package.json
+/.opencode/package-lock.json
+/.opencode/bun.lock
+/.opencode/.gitignore
