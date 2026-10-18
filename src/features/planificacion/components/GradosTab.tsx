@@ -93,7 +93,7 @@ export function GradosTab() {
                   <Badge variant="outline">{etiquetaNiveles([nivel])}</Badge>
                   <span className="text-muted-foreground">({gradosNivel.length})</span>
                 </h3>
-                <div className="space-y-4">
+                <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {gradosNivel.map((grado) => (
                     <GradoCard
                       key={grado.id}

@@ -1,32 +1,47 @@
-# React + TypeScript + Vite
+# Khipu Escolar
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Khipu Escolar es un sistema de gestión interna para colegios particulares del Perú, enfocado en inicial, primaria y secundaria. Organiza tareas escolares y administrativas cotidianas como la gestión de alumnos y de los datos de sus apoderados, docentes, grados y secciones, matrícula interna, asistencia, evaluación, pagos y reportes.
 
-Currently, two official plugins are available:
+Khipu complementa el trabajo del colegio; no busca reemplazar SIAGIE ni cubrir sus procesos oficiales. Actualmente el proyecto está pensado para una institución. Su adaptación a otros colegios es una meta futura, todavía sin una decisión de despliegue multiinstitución.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tecnologías
 
-## React Compiler
+- Frontend: React, TypeScript, Vite y Tailwind CSS.
+- Backend: Node.js y Express.
+- Persistencia: SQLite con Drizzle ORM.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Desarrollo local
 
-## Expanding the Oxlint configuration
+Requiere Node.js y npm instalados.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+El comando `dev` inicia la API y el servidor de Vite. La API usa el puerto `8787` por defecto. En desarrollo, Vite muestra la dirección local en la terminal.
+
+La base SQLite local se crea en `server/data/` al iniciar la API, y la semilla se aplica si la base está vacía. Los archivos de datos locales están excluidos de Git.
+
+## Comandos disponibles
+
+| Comando | Propósito |
+|---|---|
+| `npm run dev` | Inicia API y frontend para desarrollo. |
+| `npm run build` | Compila TypeScript y genera el frontend de producción en `dist/`. |
+| `npm run start` | Inicia la aplicación servida por la API. |
+| `npm run lint` | Ejecuta Oxlint. |
+| `npm run test:smoke` | Ejecuta verificaciones de humo contra una base temporal. |
+| `npm run backup` | Crea un respaldo local de la base SQLite. |
+
+Los respaldos, archivos `.env` y bases locales no deben incorporarse al repositorio. Para ajustar variables de entorno, consulta `.env.example` y usa un `.env` local.
+
+## Documentación
+
+- [Índice y estado de la documentación](docs/README.md)
+- [Orientación y alcance del producto](docs/producto.md)
+- [Referencia del modelo de datos](docs/modelo-datos.md)
+- [Sistema de diseño](DESIGN_SYSTEM.md)
+- [Plan de mejoras UX](plan-frontend-ux.md)
+
+La documentación histórica se conserva por ahora para mantener el contexto de decisiones. El código vigente es la fuente de verdad cuando una descripción documental no coincide con la implementación.

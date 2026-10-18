@@ -161,5 +161,5 @@ export const navigationGroups: NavGroup[] = [
 export const portalInfo = {
   name: 'Khipu Escolar',
   initials: 'KE',
-  tagline: 'Gestión educativa para varias escuelas',
+  tagline: 'Gestión escolar para colegios particulares',
 } as const
