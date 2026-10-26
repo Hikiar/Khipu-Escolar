@@ -42,10 +42,10 @@ server/data/
 # Respaldos temporales de archivos
 *.backup-before-split
 
-# OpenCode: artefactos locales antes cubiertos por .opencode/.gitignore (ese archivo no se versiona).
-# No se ignoran opencode.json, agents/ ni skills/.
-/.opencode/node_modules/
-/.opencode/package.json
-/.opencode/package-lock.json
-/.opencode/bun.lock
-/.opencode/.gitignore
+# OpenCode y configuración de agentes (no forman parte del producto)
+/.opencode/
+/opencode.json
+/opencode.jsonc
+
+# Documentación en Markdown (no se versiona)
+*.md
