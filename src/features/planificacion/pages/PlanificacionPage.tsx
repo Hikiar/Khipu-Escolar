@@ -1,23 +1,30 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/common/PageHeader'
 import { ErrorState } from '@/components/common'
-import { Layers, BookOpen, Users, UserCheck } from 'lucide-react'
+import { Layers, BookOpen } from 'lucide-react'
 import { usePlanificacion } from '../hooks/usePlanificacion'
-import { GradosTab } from '@/features/planificacion/components/GradosTab'
+import { SeccionesTab, type GuardiaSecciones } from '@/features/planificacion/components/SeccionesTab'
 import { PlanEstudiosTab } from '@/features/planificacion/components/PlanEstudiosTab'
-import { ClasesTab } from '@/features/planificacion/components/ClasesTab'
-import { AsignacionesTab } from '@/features/planificacion/components/AsignacionesTab'
+import { GuardiaCambiosDialog } from '@/features/planificacion/components/secciones/GuardiaCambiosDialog'
 
-type TabValue = 'grados' | 'plan' | 'clases' | 'asignaciones'
+type TabValue = 'secciones' | 'plan'
+
+function normalizarTab(valor: string | null): TabValue {
+  if (valor === 'plan') return 'plan'
+  return 'secciones'
+}
 
 export function PlanificacionPage() {
   const { periodoEstado, gradosEstado, error, recargarTodo } = usePlanificacion()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const tabInicial = (searchParams.get('tab') as TabValue) || 'grados'
+  const tabInicial = normalizarTab(searchParams.get('tab'))
   const [activeTab, setActiveTab] = useState<TabValue>(tabInicial)
+  const [tabPendiente, setTabPendiente] = useState<TabValue | null>(null)
+  const [guardandoTab, setGuardandoTab] = useState(false)
+  const guardiaRef = useRef<GuardiaSecciones | null>(null)
 
   // Sync tab con URL
   useEffect(() => {
@@ -25,6 +32,15 @@ export function PlanificacionPage() {
     params.set('tab', activeTab)
     setSearchParams(params)
   }, [activeTab, searchParams, setSearchParams])
+
+  const pedirTab = (nuevo: TabValue) => {
+    if (nuevo === activeTab) return
+    if (activeTab === 'secciones' && guardiaRef.current?.sucio) {
+      setTabPendiente(nuevo)
+      return
+    }
+    setActiveTab(nuevo)
+  }
 
   const cargandoInicial = periodoEstado === 'cargando' || gradosEstado === 'cargando'
 
@@ -52,42 +68,48 @@ export function PlanificacionPage() {
         />
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="grados">
+      <Tabs value={activeTab} onValueChange={(valor) => pedirTab(valor as TabValue)} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="secciones">
             <Layers className="size-4 mr-2" aria-hidden />
-            Grados y Secciones
+            Secciones
           </TabsTrigger>
           <TabsTrigger value="plan">
             <BookOpen className="size-4 mr-2" aria-hidden />
             Plan de estudios
           </TabsTrigger>
-          <TabsTrigger value="clases">
-            <Users className="size-4 mr-2" aria-hidden />
-            Clases
-          </TabsTrigger>
-          <TabsTrigger value="asignaciones">
-            <UserCheck className="size-4 mr-2" aria-hidden />
-            Asignaciones
-          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="grados">
-          <GradosTab />
+        <TabsContent value="secciones">
+          <SeccionesTab guardiaRef={guardiaRef} />
         </TabsContent>
 
         <TabsContent value="plan">
           <PlanEstudiosTab />
         </TabsContent>
-
-        <TabsContent value="clases">
-          <ClasesTab />
-        </TabsContent>
-
-        <TabsContent value="asignaciones">
-          <AsignacionesTab />
-        </TabsContent>
       </Tabs>
+
+      <GuardiaCambiosDialog
+        abierto={tabPendiente !== null}
+        guardando={guardandoTab}
+        onDescartar={() => {
+          guardiaRef.current?.descartar()
+          if (tabPendiente) setActiveTab(tabPendiente)
+          setTabPendiente(null)
+        }}
+        onGuardar={() => {
+          void (async () => {
+            setGuardandoTab(true)
+            const ok = await guardiaRef.current?.guardar()
+            setGuardandoTab(false)
+            if (ok && tabPendiente) {
+              setActiveTab(tabPendiente)
+              setTabPendiente(null)
+            }
+          })()
+        }}
+        onSeguirEditando={() => setTabPendiente(null)}
+      />
     </div>
   )
 }

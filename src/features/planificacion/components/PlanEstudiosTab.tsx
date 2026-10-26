@@ -8,8 +8,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { Can } from '@/components/guards/Can'
 import { Plus, BookOpen } from 'lucide-react'
+import { NIVELES, NIVEL_LABELS, type NivelCurricular } from '@/lib/nivelesCurso'
 import { usePlanEstudios } from '../hooks/usePlanEstudios'
 import { PlanEstudiosCursosTable } from './plan/PlanEstudiosCursosTable'
 import { AgregarAsignaturaDialog } from './plan/AgregarAsignaturaDialog'
@@ -18,11 +20,38 @@ import { QuitarAsignaturaDialog } from './plan/QuitarAsignaturaDialog'
 import { DocentesCursoSheet } from './plan/DocentesCursoSheet'
 import { DetalleAsignaturaSheet } from './plan/DetalleAsignaturaSheet'
 
+function SelectorNivel({
+  nivelSeleccionado,
+  onCambiar,
+}: {
+  nivelSeleccionado: NivelCurricular
+  onCambiar: (nivel: NivelCurricular) => void
+}) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted p-1">
+      {NIVELES.map((nivel) => (
+        <Button
+          key={nivel}
+          type="button"
+          size="sm"
+          variant={nivel === nivelSeleccionado ? 'secondary' : 'ghost'}
+          onClick={() => onCambiar(nivel)}
+          aria-pressed={nivel === nivelSeleccionado}
+        >
+          {NIVEL_LABELS[nivel]}
+        </Button>
+      ))}
+    </div>
+  )
+}
+
 export function PlanEstudiosTab() {
   const plan = usePlanEstudios()
   const {
     gradoSeleccionado,
-    grados,
+    nivelSeleccionado,
+    gradosDelNivel,
+    handleNivelChange,
     handleGradoChange,
     cursosDeGrado,
     cursosDeGradoEstado,
@@ -76,27 +105,35 @@ export function PlanEstudiosTab() {
           <BookOpen className="size-12 mx-auto text-muted-foreground/50" aria-hidden />
           <h4 className="mt-4 text-lg font-medium">Selecciona un grado</h4>
           <p className="text-sm text-muted-foreground mb-6">
-            Elige un grado para ver y gestionar su plan de estudios
+            El nivel agrupa los grados y sugiere el catálogo de asignaturas. Elige un nivel y luego un grado.
           </p>
-{grados.length > 0 && (
-              <div className="max-w-xs mx-auto">
+          <div className="flex flex-col items-center gap-4">
+            <SelectorNivel nivelSeleccionado={nivelSeleccionado} onCambiar={handleNivelChange} />
+            {gradosDelNivel.length > 0 && (
+              <div className="max-w-xs w-full">
                 <Label htmlFor="selector-grado-vacio" className="mb-2 block text-sm font-medium">
                   Grado
                 </Label>
-                <Select value={gradoSeleccionado?.id ?? ''} onValueChange={handleGradoChange}>
+                <Select value="" onValueChange={handleGradoChange}>
                   <SelectTrigger id="selector-grado-vacio" className="w-full">
-                    <SelectValue placeholder="Seleccionar grado" />
+                    <SelectValue placeholder="Seleccionar grado">
+                      {(value: string) => {
+                        const g = gradosDelNivel.find((x) => x.id === value)
+                        return g ? `${g.codigo} — ${g.nombre}` : null
+                      }}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {grados.map((g) => (
+                    {gradosDelNivel.map((g) => (
                       <SelectItem key={g.id} value={g.id}>
-                        {g.codigo} — {g.nombre} <span className="text-muted-foreground">({g.nivel})</span>
+                        {g.codigo} — {g.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
+          </div>
         </CardContent>
       </Card>
     )
@@ -104,37 +141,45 @@ export function PlanEstudiosTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Plan de estudios</h3>
-            {grados.length > 0 && (
-              <Select value={gradoSeleccionado?.id ?? ''} onValueChange={handleGradoChange}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Seleccionar grado" />
-                </SelectTrigger>
-                <SelectContent>
-                  {grados.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.codigo} — {g.nombre} <span className="text-muted-foreground">({g.nivel})</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-          {gradoSeleccionado && (
+      <div className="flex flex-col gap-4">
+        <SelectorNivel nivelSeleccionado={nivelSeleccionado} onCambiar={handleNivelChange} />
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">Plan de estudios</h3>
+              <Badge variant="outline">{NIVEL_LABELS[nivelSeleccionado]}</Badge>
+              {gradosDelNivel.length > 0 && (
+                <Select value={gradoSeleccionado.id} onValueChange={handleGradoChange}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Seleccionar grado">
+                      {(value: string) => {
+                        const g = gradosDelNivel.find((x) => x.id === value)
+                        return g ? `${g.codigo} — ${g.nombre}` : null
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gradosDelNivel.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.codigo} — {g.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground mt-1">
               {gradoSeleccionado.nombre} ({gradoSeleccionado.codigo}) · Asignaturas del plan con sus horas semanales y orden
             </p>
-          )}
+          </div>
+          <Can permission="cursos.editar">
+            <Button onClick={() => void abrirDialogoAgregar()} disabled={!gradoSeleccionado}>
+              <Plus className="size-4 mr-2" aria-hidden />
+              Añadir asignatura al plan
+            </Button>
+          </Can>
         </div>
-        <Can permission="cursos.editar">
-          <Button onClick={() => void abrirDialogoAgregar()} disabled={!gradoSeleccionado}>
-            <Plus className="size-4 mr-2" aria-hidden />
-            Añadir asignatura al plan
-          </Button>
-        </Can>
       </div>
 
       {cursosDeGradoEstado === 'ok' && cursosDeGrado.length === 0 && (

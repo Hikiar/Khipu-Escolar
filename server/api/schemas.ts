@@ -364,7 +364,7 @@ export const crearClaseSchema = z.object({
 })
 
 export const actualizarClaseSchema = z.object({
-  tutorDocenteId: z.string().optional(),
+  tutorDocenteId: z.string().nullable().optional(),
   vacantes: z.number().int().positive().optional(),
   estado: estadoClaseSchema.optional(),
 })

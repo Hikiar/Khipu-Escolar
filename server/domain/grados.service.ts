@@ -80,7 +80,7 @@ export interface CrearClaseInput {
 }
 
 export interface ActualizarClaseInput {
-  tutorDocenteId?: string
+  tutorDocenteId?: string | null
   vacantes?: number
   estado?: string
 }
@@ -458,7 +458,7 @@ export interface CrearClaseInput {
 }
 
 export interface ActualizarClaseInput {
-  tutorDocenteId?: string
+  tutorDocenteId?: string | null
   vacantes?: number
   estado?: string
 }

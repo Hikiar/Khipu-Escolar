@@ -461,7 +461,7 @@ export function DashboardPage() {
     : 'Bienvenido al sistema de gestión escolar'
 
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-6">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Dashboard"
         description={bienvenida}
@@ -484,7 +484,7 @@ export function DashboardPage() {
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">
           Módulos del sistema
         </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {navigationGroups.flatMap((group) =>
             group.items
               .filter((item) => item.href !== '/dashboard')

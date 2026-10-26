@@ -145,12 +145,12 @@ export function ClaseFormDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="clase-estado">Estado</Label>
-            <Select value={formClase.estado ?? 'ACTIVO'} onValueChange={(v) => setFormClase({ ...formClase, estado: v })}>
+            <Select value={formClase.estado ?? 'ABIERTA'} onValueChange={(v) => setFormClase({ ...formClase, estado: v })}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Seleccionar estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ACTIVO">Activa</SelectItem>
+                <SelectItem value="ABIERTA">Activa</SelectItem>
                 <SelectItem value="CERRADA">Cerrada</SelectItem>
               </SelectContent>
             </Select>

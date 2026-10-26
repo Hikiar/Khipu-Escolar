@@ -1,4 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useCarga } from '@/hooks/useCarga'
 import { notificarExito, notificarError } from '@/lib/feedback'
 import { gradosCneBDeNivel } from '@/lib/gradosCneb'
 import { usePlanificacion } from './usePlanificacion'
@@ -9,14 +11,71 @@ import {
   crearSeccion,
   actualizarSeccion,
   eliminarSeccion,
+  crearClase,
   type Grado,
   type CrearGradoInput,
   type Seccion,
   type CrearSeccionInput,
+  type CrearClaseInput,
+  type Clase,
 } from '@/services/gradosService'
+import {
+  listarDocentes,
+  listarSeccionesDeGrado as listarSeccionesDeGradoCatalogo,
+  type Docente,
+} from '@/services/catalogoService'
+import { listarAsignaciones, type AsignacionCurso } from '@/services/asignacionService'
+
+interface SeccionParaSelect {
+  id: string
+  gradoId: string
+  nombre: string
+  turno: string
+}
 
 export function useGradosTab() {
-  const { grados, gradosEstado, recargarSecciones, recargarTodo, gradoSeleccionado, setGradoSeleccionado } = usePlanificacion()
+  const {
+    grados,
+    gradosEstado,
+    recargarSecciones,
+    recargarTodo,
+    gradoSeleccionado,
+    setGradoSeleccionado,
+    periodo,
+    clases,
+    cursosDeGrado,
+    recargarClases,
+  } = usePlanificacion()
+
+  const { can } = useAuth()
+  const puedeProfesores = can('profesores.ver')
+  const puedeAsignaciones = can('asignaciones.ver')
+  const puedeCrearClase = can('grados.crear')
+
+  const docentes = useCarga<Docente[]>(() => listarDocentes(), puedeProfesores)
+  const asignaciones = useCarga<AsignacionCurso[]>(() => listarAsignaciones(), puedeAsignaciones)
+
+  const docentesPorId = useMemo(() => {
+    const mapa = new Map<string, Docente>()
+    for (const docente of docentes.data ?? []) mapa.set(docente.id, docente)
+    return mapa
+  }, [docentes.data])
+
+  const clasesPorSeccion = useMemo(() => {
+    const mapa = new Map<string, Clase>()
+    for (const clase of clases) mapa.set(`${clase.gradoId}:${clase.seccionId}`, clase)
+    return mapa
+  }, [clases])
+
+  const asignacionesPorClase = useMemo(() => {
+    const mapa = new Map<string, AsignacionCurso[]>()
+    for (const asignacion of asignaciones.data ?? []) {
+      const lista = mapa.get(asignacion.claseId) ?? []
+      lista.push(asignacion)
+      mapa.set(asignacion.claseId, lista)
+    }
+    return mapa
+  }, [asignaciones.data])
 
   const [dialogoGrado, setDialogoGrado] = useState<{
     abierto: boolean
@@ -46,6 +105,23 @@ export function useGradosTab() {
   })
   const [formSeccionErrores, setFormSeccionErrores] = useState<Partial<CrearSeccionInput>>({})
   const [formSeccionEnviando, setFormSeccionEnviando] = useState(false)
+
+  const [dialogoClase, setDialogoClase] = useState<{
+    abierto: boolean
+    gradoId: string
+    seccionId: string
+  }>({ abierto: false, gradoId: '', seccionId: '' })
+  const [formClase, setFormClase] = useState<CrearClaseInput & { estado?: string }>({
+    periodoId: '',
+    gradoId: '',
+    seccionId: '',
+    tutorDocenteId: undefined,
+    vacantes: 30,
+    estado: 'ABIERTA',
+  })
+  const [formClaseErrores, setFormClaseErrores] = useState<Partial<CrearClaseInput>>({})
+  const [formClaseEnviando, setFormClaseEnviando] = useState(false)
+  const [seccionesParaClase, setSeccionesParaClase] = useState<SeccionParaSelect[]>([])
 
   const [seccionPorEliminar, setSeccionPorEliminar] = useState<{ seccion: Seccion; gradoId: string } | null>(null)
   const [eliminandoSeccion, setEliminandoSeccion] = useState(false)
@@ -179,12 +255,79 @@ export function useGradosTab() {
     await recargarSecciones(seccionPorEliminar.gradoId)
   }, [seccionPorEliminar, recargarSecciones])
 
+  const cargarSeccionesParaClase = useCallback(async (gradoId: string) => {
+    const res = await listarSeccionesDeGradoCatalogo(gradoId)
+    if (res.ok) {
+      setSeccionesParaClase(
+        res.data.map((s) => ({ id: s.id, gradoId: s.gradoId, nombre: s.nombre, turno: s.turno })),
+      )
+    }
+  }, [])
+
+  const abrirDialogoCrearClase = useCallback(
+    (gradoId: string, seccionId: string) => {
+      setFormClase({
+        periodoId: periodo?.id ?? '',
+        gradoId,
+        seccionId,
+        tutorDocenteId: undefined,
+        vacantes: 30,
+        estado: 'ABIERTA',
+      })
+      setFormClaseErrores({})
+      setSeccionesParaClase([])
+      setDialogoClase({ abierto: true, gradoId, seccionId })
+      void cargarSeccionesParaClase(gradoId)
+    },
+    [periodo?.id, cargarSeccionesParaClase],
+  )
+
+  const cerrarDialogoClase = useCallback(() => {
+    setDialogoClase({ abierto: false, gradoId: '', seccionId: '' })
+  }, [])
+
+  const enviarClase = useCallback(async () => {
+    const errores: Partial<CrearClaseInput> = {}
+    if (!formClase.periodoId) errores.periodoId = 'Año lectivo requerido'
+    if (!formClase.gradoId) errores.gradoId = 'Grado requerido'
+    if (!formClase.seccionId) errores.seccionId = 'Sección requerida'
+    if (Object.keys(errores).length > 0) {
+      setFormClaseErrores(errores)
+      return
+    }
+    setFormClaseEnviando(true)
+    const res = await crearClase({
+      periodoId: formClase.periodoId,
+      gradoId: formClase.gradoId,
+      seccionId: formClase.seccionId,
+      tutorDocenteId: formClase.tutorDocenteId || undefined,
+      vacantes: formClase.vacantes,
+    })
+    setFormClaseEnviando(false)
+    if (res.ok === false) {
+      notificarError(res.error)
+      return
+    }
+    notificarExito('Clase creada')
+    cerrarDialogoClase()
+    await recargarClases()
+  }, [formClase, cerrarDialogoClase, recargarClases])
+
   return {
     grados,
     gradosEstado,
     recargarSecciones,
+    recargarClases,
     gradoSeleccionado,
     setGradoSeleccionado,
+    periodo,
+    clasesPorSeccion,
+    cursosDeGrado,
+    docentesPorId,
+    asignacionesPorClase,
+    puedeProfesores,
+    puedeAsignaciones,
+    puedeCrearClase,
     dialogoGrado,
     formGrado,
     setFormGrado,
@@ -203,6 +346,13 @@ export function useGradosTab() {
     gradoPorEliminar,
     setGradoPorEliminar,
     eliminandoGrado,
+    dialogoClase,
+    formClase,
+    setFormClase,
+    formClaseErrores,
+    formClaseEnviando,
+    seccionesParaClase,
+    cargarSeccionesParaClase,
     abrirDialogoCrearGrado,
     aplicarGradoSugerido,
     abrirDialogoEditarGrado,
@@ -215,5 +365,8 @@ export function useGradosTab() {
     enviarSeccion,
     abrirConfirmarEliminarSeccion,
     manejarEliminarSeccion,
+    abrirDialogoCrearClase,
+    cerrarDialogoClase,
+    enviarClase,
   }
 }

@@ -35,8 +35,8 @@ routerCatalogo.get('/clases', validarQuery(queryClasesCatalogo), async (req, res
     abiertas?: string
   }
   // Un docente no administrador solo puede listar SUS clases (se ignora otro docenteId).
-  const docenteBuscado =
-    docenteId && esAdminAcademico(req) ? docenteId : req.auth!.persona.id
+  // Un administrador puede filtrar por docenteId; si no lo indica, se listan todas.
+  const docenteBuscado = esAdminAcademico(req) ? docenteId : req.auth!.persona.id
   if (docenteBuscado) {
     enviarResultado(res, await catalogo.listarClasesDeDocente(docenteBuscado))
     return

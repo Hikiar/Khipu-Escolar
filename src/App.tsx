@@ -99,8 +99,9 @@ export default function App() {
           />
           {/* Redirecciones de rutas antiguas hacia Planificación Académica */}
           <Route path="cursos" element={<Navigate to="/planificacion?tab=plan" replace />} />
-          <Route path="grados" element={<Navigate to="/planificacion" replace />} />
-          <Route path="asignaciones" element={<Navigate to="/planificacion?tab=asignaciones" replace />} />
+          <Route path="grados" element={<Navigate to="/planificacion?tab=secciones" replace />} />
+          <Route path="secciones" element={<Navigate to="/planificacion?tab=secciones" replace />} />
+          <Route path="asignaciones" element={<Navigate to="/planificacion?tab=secciones" replace />} />
           <Route
             path="matriculas"
             element={

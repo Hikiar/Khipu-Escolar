@@ -22,7 +22,7 @@ export function ProfesoresFiltros({
   buscador: UseBuscador<Docente>
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
       <div className="w-full max-w-xs">
         <Label htmlFor="filtro-estado" className="mb-1.5 block">Filtrar por estado</Label>
         <Select

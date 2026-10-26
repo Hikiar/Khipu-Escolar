@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { notificarExito, notificarError } from '@/lib/feedback'
+import type { NivelCurricular } from '@/lib/nivelesCurso'
 import { usePlanificacion } from './usePlanificacion'
 import {
   agregarCursoAGrado,
@@ -21,10 +22,35 @@ import {
 export function usePlanEstudios() {
   const { gradoSeleccionado, setGradoSeleccionado, grados, cursosDeGrado, cursosDeGradoEstado, recargarCursosDeGrado } = usePlanificacion()
 
+  // El nivel es el primer filtro: acota los grados disponibles.
+  const [nivelSeleccionado, setNivelSeleccionado] = useState<NivelCurricular>('PRIMARIA')
+
+  const gradosDelNivel = useMemo(
+    () =>
+      grados
+        .filter((g) => g.nivel === nivelSeleccionado)
+        .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.nombre.localeCompare(b.nombre)),
+    [grados, nivelSeleccionado],
+  )
+
   const handleGradoChange = useCallback((gradoId: string) => {
-    const g = grados.find((x) => x.id === gradoId) ?? null
+    const g = gradosDelNivel.find((x) => x.id === gradoId) ?? null
     setGradoSeleccionado(g)
+  }, [gradosDelNivel, setGradoSeleccionado])
+
+  const handleNivelChange = useCallback((nivel: NivelCurricular) => {
+    setNivelSeleccionado(nivel)
+    const primero = grados
+      .filter((g) => g.nivel === nivel)
+      .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.nombre.localeCompare(b.nombre))[0]
+    setGradoSeleccionado(primero ?? null)
   }, [grados, setGradoSeleccionado])
+
+  // Al cargar (o cambiar de nivel) selecciona el primer grado del nivel si no hay uno válido.
+  useEffect(() => {
+    const valido = gradoSeleccionado && gradoSeleccionado.nivel === nivelSeleccionado
+    if (!valido) setGradoSeleccionado(gradosDelNivel[0] ?? null)
+  }, [gradosDelNivel, nivelSeleccionado, gradoSeleccionado, setGradoSeleccionado])
 
   const [dialogoAgregar, setDialogoAgregar] = useState(false)
   const [formCursoId, setFormCursoId] = useState('')
@@ -210,6 +236,9 @@ export function usePlanEstudios() {
   return {
     gradoSeleccionado,
     grados,
+    nivelSeleccionado,
+    gradosDelNivel,
+    handleNivelChange,
     handleGradoChange,
     cursosDeGrado,
     cursosDeGradoEstado,
